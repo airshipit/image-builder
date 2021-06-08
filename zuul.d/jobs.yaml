@@ -1,0 +1,10 @@
+- job:
+    name: image-builder-upload-git-mirror
+    parent: upload-git-mirror
+    description: Mirrors airship/image-builder to airshipit/image-builder
+    vars:
+      git_mirror_repository: airshipit/image-builder
+    secrets:
+      - name: git_mirror_credentials
+        secret: airship_image_builder_airshipit_github_key
+        pass-to-parent: true
