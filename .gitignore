@@ -1,0 +1,14 @@
+*alpine-minirootfs.tar.gz
+*build/
+
+# image-builder artifacts to ignore
+**.iso
+**.qcow2
+**.md5sum
+image-builder/assets/playbooks/roles/multistrap/vars/main.yaml
+image-builder/assets/playbooks/roles/livecdcontent/vars/main.yaml
+image-builder/assets/playbooks/roles/osconfig/vars/main.yaml
+
+# IDE Directories
+.idea/
+vscode/

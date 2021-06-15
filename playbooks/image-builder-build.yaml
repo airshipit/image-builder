@@ -1,0 +1,58 @@
+# Copyright 2019 AT&T Intellectual Property.  All other rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+- hosts: primary
+  tasks:
+    - name: Install python-docker module
+      apt:
+        pkg:
+          - python-docker
+          - python3-docker
+          - pass
+          - python-requests
+          - python3-requests
+          - python3-pip
+          - python3-setuptools
+        state: present
+      become: true
+      when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+    - name: Install docker pip module
+      pip:
+        name: docker
+        executable: pip3
+    - name: Execute custom role
+      include_role:
+        name: "{{ pre_build_role }}"
+      when: pre_build_role is defined
+    - name: Publish images
+      block:
+        - command: make images clean
+          args:
+            chdir: "{{ makefile_chdir }}"
+          environment:
+            AZ_SDK: "{{ az_sdk }}"
+            COMMIT: "{{ zuul.newrev | default('') }}"
+            DOCKER_REGISTRY: "{{ docker_registry }}"
+            GCP_SDK: "{{ gcp_sdk }}"
+            IMAGE_PREFIX: "{{ image_prefix | default('airshipit') }}"
+            IMAGE_TAG: "{{ image_tag | default('latest') }}"
+            LABEL: "{{ image_label | default('org.airshipit.build=community') }}"
+            NO_PROXY: "{{ proxy.noproxy }}"
+            PUSH_IMAGE: "false"
+            PROXY: "{{ proxy.http }}"
+            QCOW_CONF_DIRS: "{{ qcow_conf_dirs | default('') }}"
+            USE_PROXY: "{{ proxy.enabled | lower }}"
+            WORKDIR: "{{ image_config_dir | default('manifests') }}"
+      become: True

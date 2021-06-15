@@ -8,3 +8,35 @@
       - name: git_mirror_credentials
         secret: airship_image_builder_airshipit_github_key
         pass-to-parent: true
+
+- job:
+    name: image-builder-build
+    nodeset: image-builder-single-node
+    timeout: 7200
+    post-timeout: 7200
+    pre-run: playbooks/image-builder-deploy-docker.yaml
+    run: playbooks/image-builder-build.yaml
+    post-run: playbooks/image-builder-collect-logs.yaml
+
+- job:
+    name: image-builder-publish-latest
+    nodeset: image-builder-single-node
+    timeout: 7200
+    post-timeout: 7200
+    pre-run: playbooks/image-builder-deploy-docker.yaml
+    run: playbooks/airship-images-publish.yaml
+    secrets:
+      - name: image_builder_quay_creds
+        secret: image_builder_quay_creds
+
+- job:
+    name: image-builder-publish-commit
+    parent: image-builder-publish-latest
+    vars:
+      image_tag: "{{ zuul.newrev }}"
+
+- nodeset:
+    name: image-builder-single-node
+    nodes:
+      - name: primary
+        label: ubuntu-bionic-32GB
