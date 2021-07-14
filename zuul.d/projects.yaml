@@ -15,15 +15,15 @@
       image_tag: latest
     check:
       jobs:
-        - image-builder-build
+        - airship-image-builder-build
     gate:
       jobs:
-        - image-builder-build
+        - airship-image-builder-build
     post:
       jobs:
-        - image-builder-upload-git-mirror
-        - image-builder-publish-latest
-        - image-builder-publish-commit
+        - airship-image-builder-upload-git-mirror
+        - airship-image-builder-publish-latest
+        - airship-image-builder-publish-commit
     tag:
       jobs:
-        - image-builder-upload-git-mirror
+        - airship-image-builder-upload-git-mirror

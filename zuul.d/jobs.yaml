@@ -1,5 +1,5 @@
 - job:
-    name: image-builder-upload-git-mirror
+    name: airship-image-builder-upload-git-mirror
     parent: upload-git-mirror
     description: Mirrors airship/image-builder to airshipit/image-builder
     vars:
@@ -10,33 +10,33 @@
         pass-to-parent: true
 
 - job:
-    name: image-builder-build
-    nodeset: image-builder-single-node
+    name: airship-image-builder-build
+    nodeset: airship-image-builder-single-node
     timeout: 7200
     post-timeout: 7200
-    pre-run: playbooks/image-builder-deploy-docker.yaml
-    run: playbooks/image-builder-build.yaml
-    post-run: playbooks/image-builder-collect-logs.yaml
+    pre-run: playbooks/airship-image-builder-deploy-docker.yaml
+    run: playbooks/airship-image-builder-build.yaml
+    post-run: playbooks/airship-image-builder-collect-logs.yaml
 
 - job:
-    name: image-builder-publish-latest
-    nodeset: image-builder-single-node
+    name: airship-image-builder-publish-latest
+    nodeset: airship-image-builder-single-node
     timeout: 7200
     post-timeout: 7200
-    pre-run: playbooks/image-builder-deploy-docker.yaml
-    run: playbooks/airship-images-publish.yaml
+    pre-run: playbooks/airship-image-builder-deploy-docker.yaml
+    run: playbooks/airship-image-builder-publish-latest.yaml
     secrets:
       - name: image_builder_quay_creds
         secret: image_builder_quay_creds
 
 - job:
-    name: image-builder-publish-commit
-    parent: image-builder-publish-latest
+    name: airship-image-builder-publish-commit
+    parent: airship-image-builder-publish-latest
     vars:
       image_tag: "{{ zuul.newrev }}"
 
 - nodeset:
-    name: image-builder-single-node
+    name: airship-image-builder-single-node
     nodes:
       - name: primary
         label: ubuntu-bionic-32GB
