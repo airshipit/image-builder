@@ -9,12 +9,19 @@
     path: "{{ root_image }}/live/filesystem.squashfs"
     state: absent
 
+# There are open bugs with mksquashfs which cause it to hang ocassionally.
+# Ex: https://bugs.launchpad.net/ubuntu/+source/squashfs-tools/+bug/722168
+# So we implement a timeout and retries here to mitigate this to improve the
+# stability of the build pipeline and reduce need for manual rechecks.
 - name: "Building squashfs"
   shell:
     cmd: |
-        mksquashfs \
+        timeout "{{ squashfs_timeout }}" mksquashfs \
             "{{ root_chroot }}" \
             "{{ root_image }}/live/filesystem.squashfs" \
             -processors {{ mksquashfs_threads }} \
             -comp {{ mksquashfs_compression }} \
             -e boot
+  retries: 3
+  register: squash_result
+  until: squash_result is not failed
