@@ -1,3 +1,8 @@
+- name: "clean apt lists from image"
+  shell:
+    cmd: |
+        rm -rf {{ root_image }}/var/lib/apt/lists/*
+
 - name: "ensuring directory {{ root_image }}/live exists"
   file:
     path: "{{ root_image }}/live"
@@ -21,7 +26,8 @@
             "{{ root_image }}/live/filesystem.squashfs" \
             -processors {{ mksquashfs_threads }} \
             -comp {{ mksquashfs_compression }} \
-            -e boot
+            -e boot \
+            -e live
   retries: 3
   register: squash_result
   until: squash_result is not failed
