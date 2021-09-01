@@ -15,10 +15,12 @@ build_type="${1:-qcow}"
 host_mount_directory="${2:-$BASEDIR/../manifests}"
 # Docker image to use when launching this container
 image="${3:-port/image-builder:latest-ubuntu_focal}"
+# boot timeout for image validation
+boot_timeout="${4:-300}"
 # proxy to use, if applicable
-proxy="$4"
+proxy="$5"
 # noproxy to use, if applicable
-noproxy="$5"
+noproxy="$6"
 
 workdir="$(realpath ${host_mount_directory})"
 
@@ -54,6 +56,7 @@ install_pkg libvirt-daemon-system
 install_pkg libvirt-clients
 install_pkg cloud-image-utils
 install_pkg ovmf
+install_pkg util-linux
 type docker >& /dev/null || (echo "Error: You do not have docker installed in your environment." && exit 1)
 sudo docker version | grep Community >& /dev/null || (echo "Error: Could not find Community version of docker" && \
 	echo "You must uninstall docker.io and install docker-ce. For instructions, see https://docs.docker.com/engine/install/ubuntu/" && \
@@ -131,6 +134,7 @@ else
   exit 1
 fi
 
+logfile=/var/log/${img_name}.log
 imagePath=$(echo $disk1 | cut -d'=' -f2 | cut -d',' -f1)
 echo Image successfully written to $imagePath
 
@@ -138,10 +142,36 @@ sudo -E virsh destroy ${img_name} 2> /dev/null || true
 sudo -E virsh undefine ${img_name} --nvram 2> /dev/null || true
 
 cpu_type=''
-kvm-ok >& /dev/null && cpu_type='--cpu host-passthrough' || true
+virt_type=qemu
+if kvm-ok >& /dev/null; then
+  cpu_type='--cpu host-passthrough'
+  virt_type=kvm
+fi
 
 if ! sudo -E virsh net-list | grep default | grep active > /dev/null; then
   network='--network none'
+fi
+
+# Default to 4 vcpus
+num_vcpus=4
+# Reduce the vcpu count in the event physical cpu count is less
+num_pcpus=$(($(lscpu -e | wc -l) - 1))
+if [[ ${num_pcpus} -lt ${num_vcpus} ]]; then
+  echo Reducing num_vcpus to ${num_pcpus}
+  num_vcpus=${num_pcpus}
+fi
+# Exit if the number of vcpus is less than 1, i.e. there is a problem
+if [[ ${num_vcpus} -lt 1 ]]; then
+  echo ERROR: num_vcpus of ${num_vcpus} is less than 1
+  exit 1
+fi
+
+serial=''
+perform_boot_test="false"
+# User may set boot_timeout to 0 to skip boot test and allow for manual "virsh console" debugging
+if [ $boot_timeout -gt 0 ]; then
+  serial="--serial file,path=${logfile}"
+  perform_boot_test="true"
 fi
 
 xml=$(mktemp)
@@ -150,11 +180,12 @@ sudo -E virt-install --connect qemu:///system \
  --memory 1536 \
  ${network} \
  ${cpu_type} \
- --vcpus 4 \
+ --vcpus ${num_vcpus} \
  --import \
+ ${serial} \
  ${disk1} \
  ${disk2} \
- ${virt_type} \
+ --virt-type ${virt_type} \
  ${uefi_boot_arg} \
  --noautoconsole \
  --graphics vnc,listen=0.0.0.0 \
@@ -164,3 +195,24 @@ virsh define $xml
 echo Virsh definition accepted
 echo Image artifact located at $imagePath
 
+if [[ $perform_boot_test = "true" ]]; then
+  echo Starting ${img_name} ...
+  virsh start ${img_name}
+  successful_boot=false
+  time_waited=0
+  while [ $time_waited -lt $boot_timeout ]; do
+    if sudo cat ${logfile} | grep "login:" >& /dev/null; then
+      echo ${img_name} boot test SUCCESS after $time_waited seconds.
+      successful_boot=true
+      break
+    fi
+    sleep 5
+    time_waited=$(($time_waited + 5))
+  done
+  echo Stopping ${img_name} ...
+  virsh destroy ${img_name}
+  if [ $successful_boot != "true" ]; then
+    echo ${img_name} boot test FAIL after $boot_timeout second timeout.
+    exit 1
+  fi
+fi

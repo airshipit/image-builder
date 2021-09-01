@@ -37,6 +37,7 @@ SKIP_LIVECDCONTENT_ROLE ?=
 IMAGE           ?= ${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}:${IMAGE_TAG}-${DISTRO}
 PROXY           ?=
 NO_PROXY        ?= localhost,127.0.0.1
+BOOT_TIMEOUT	?= 300 # Image boot validation timeout. Set to 0 to disable to make console available for manual debugging.
 
 .PHONY: help build images cut_image package_qcow run clean
 
@@ -109,7 +110,7 @@ ifneq ($(PROXY), )
 	export NO_PROXY=$(NO_PROXY)
 endif
 ifeq ($(IMAGE_TYPE), iso)
-	sudo -E tools/cut_image.sh $(IMAGE_TYPE) $(WORKDIR)/iso $(IMAGE) "$(PROXY)" "$(NO_PROXY)"
+	sudo -E tools/cut_image.sh $(IMAGE_TYPE) $(WORKDIR)/iso $(IMAGE) $(BOOT_TIMEOUT) "$(PROXY)" "$(NO_PROXY)"
 else
 	# Assemble all images based on configs defined in each subdirectory
 	#                     Trailing / allows proper function with symlinks
@@ -124,7 +125,7 @@ else
 	    export qcow_params="$(QCOW_BUNDLE)/$$subdir/qcow-vars.yaml"
 	    # Image name
 	    export img_name=$$subdir.qcow2
-	    sudo -E tools/cut_image.sh $(IMAGE_TYPE) $(QCOW_BUNDLE) $(IMAGE) "$(PROXY)" "$(NO_PROXY)"
+	    sudo -E tools/cut_image.sh $(IMAGE_TYPE) $(QCOW_BUNDLE) $(IMAGE) $(BOOT_TIMEOUT) "$(PROXY)" "$(NO_PROXY)"
 	done
 endif
 
