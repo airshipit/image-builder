@@ -23,6 +23,9 @@ IMAGE_TYPE	?= iso # iso | qcow
 PUSH_IMAGE	?= false
 DISTRO          ?= ubuntu_focal
 WORKDIR         ?= ./manifests
+# Specifiy if you want to use a different profile than the default.
+#	i.e. PROFILE ?= k8s-1.18
+PROFILE 		?=
 QCOW_BUNDLE     ?= ${WORKDIR}/qcow-bundle
 # Specify if you want to only build a certain subset of QCOW bundles
 QCOW_BUNDLE_DIRS  ?=
@@ -50,11 +53,17 @@ help: ## This help.
 images: build generate_iso package_qcow clean
 
 build:
+ifneq ($(PROFILE), )
+	set -ex
+	# Apply any user-defined profiles overrides to playbooks
+	rsync -rc ./../profiles/$(PROFILE)/manifests/ $(WORKDIR)/
+endif
 	set -ex
 	# Apply any user-defined rootfs overrides to playbooks
 	cp $(WORKDIR)/rootfs/multistrap-vars.yaml assets/playbooks/roles/multistrap/vars/main.yaml
 	cp $(WORKDIR)/rootfs/osconfig-vars.yaml assets/playbooks/roles/osconfig/vars/main.yaml
 	cp $(WORKDIR)/rootfs/livecdcontent-vars.yaml assets/playbooks/roles/livecdcontent/vars/main.yaml
+
 ifneq ($(PROXY), )
 	sudo -E ./tools/docker_proxy.sh $(PROXY) $(NO_PROXY)
 	export http_proxy=$(PROXY)
@@ -90,8 +99,8 @@ endif
 	--label "org.opencontainers.image.title=$(IMAGE_NAME)"
 endif
 	imgId=`sudo docker images | grep 'image-builder ' | awk '{print $$3}'`
-	sudo -E DOCKER_BUILDKIT=1 docker run $$imgId ls -ltra /build/usr/bin/sudo > /tmp/sticky_result
-	sudo grep '^-rws' /tmp/sticky_result >& /dev/null || \
+	time sudo -E DOCKER_BUILDKIT=1 docker run $$imgId ls -ltra /build/usr/bin/sudo > /tmp/sticky_result
+	time sudo grep '^-rws' /tmp/sticky_result >& /dev/null || \
 		(echo Could not find sticky bit set on target image sudo binary. Are you using buildkit? && \
 		sudo cat /tmp/sticky_result && exit 1)
 ifeq ($(PUSH_IMAGE), true)

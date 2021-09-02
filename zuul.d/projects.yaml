@@ -15,15 +15,19 @@
       image_tag: latest
     check:
       jobs:
-        - airship-image-builder-build
+        - airship-image-builder-build-k8s-1.18
+        - airship-image-builder-build-k8s-1.19
     gate:
       jobs:
-        - airship-image-builder-build
+        - airship-image-builder-build-k8s-1.18
+        - airship-image-builder-build-k8s-1.19
     post:
       jobs:
         - airship-image-builder-upload-git-mirror
-        - airship-image-builder-publish-latest
-        - airship-image-builder-publish-commit
+        - airship-image-builder-publish-k8s-1.18
+        - airship-image-builder-publish-k8s-1.19
+        - airship-image-builder-publish-commit-k8s-1.18
+        - airship-image-builder-publish-commit-k8s-1.19
     tag:
       jobs:
         - airship-image-builder-upload-git-mirror
