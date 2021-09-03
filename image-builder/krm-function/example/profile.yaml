@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: notImportantHere
+  annotations:
+    config.kubernetes.io/function: |
+      container:
+        image: quay.io/airshipit/qcow-bundle-subcluster:latest-ubuntu_focal
+data:
+  configPath: /profiles/profile_multistrap.json
+  header: |
+    apiVersion: airshipit.org/v1alpha1
+    kind: VariableCatalogue
+    metadata:
+      name: profile_multistrap

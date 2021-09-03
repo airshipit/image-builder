@@ -58,6 +58,11 @@ COPY assets/playbooks/roles/iso /opt/assets/playbooks/roles/iso
 COPY assets/playbooks/qcow.yaml /opt/assets/playbooks/qcow.yaml
 COPY assets/playbooks/roles/qcow /opt/assets/playbooks/roles/qcow
 
+COPY assets/playbooks/profile_generation.yaml /opt/assets/playbooks/profile_generation.yaml
+COPY assets/playbooks/profile_resolution.yaml /opt/assets/playbooks/profile_resolution.yaml
+COPY assets/playbooks/profile.j2 /opt/assets/playbooks/profile.j2
+COPY assets/playbooks/profile_multistrap.json /opt/assets/playbooks/profile_multistrap.json
+
 COPY assets/playbooks/build /build
 
 COPY assets/*.sh /usr/bin/local/

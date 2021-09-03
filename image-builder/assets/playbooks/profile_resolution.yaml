@@ -1,0 +1,28 @@
+---
+- hosts: localhost
+  # This playbook resolves all references of one variables
+  # to another variables.
+  # Some variables in vars may reference facts, so we need them
+  gather_facts: true
+  vars_files:
+    # list all files in this order so vars override defaults
+    - roles/multistrap/defaults/main.yaml
+    - roles/multistrap/vars/main.yaml
+    - roles/osconfig/defaults/main.yaml
+    - roles/osconfig/vars/main.yaml
+    - roles/livecdcontent/defaults/main.yaml
+    - roles/livecdcontent/vars/main.yaml
+  tasks:
+          - name: Store vars (intermittent 1...)
+            # In theory we should repeat that until we see any {{ }}
+            # but in practice we'll just add this task needed number of times
+            # to make sure that all variables resolved knowing all configs
+            template:
+              src: intermittent.j2
+              dest: intermittent.j2
+
+          - name: Store vars (final)
+            template:
+              src: intermittent.j2
+              dest: profile.json
+

@@ -1,5 +1,9 @@
+ARG KRM_BASE_IMAGE=quay.io/airshipit/image-profile-krm:latest
 ARG FROM=alpine
-FROM ${FROM}
+
+FROM ${KRM_BASE_IMAGE} as krm
+
+FROM ${FROM} as bundle
 
 LABEL org.opencontainers.image.authors='airship-discuss@lists.airshipit.org, irc://#airshipit@freenode' \
       org.opencontainers.image.url='https://airshipit.org' \
@@ -9,3 +13,6 @@ LABEL org.opencontainers.image.authors='airship-discuss@lists.airshipit.org, irc
       org.opencontainers.image.licenses='Apache-2.0'
 
 COPY *.qcow2 *.qcow2.md5sum /qcows/
+COPY profile_*.json /profiles/
+COPY --from=krm /usr/local/bin/function /usr/local/bin/function
+ENTRYPOINT ["function"]

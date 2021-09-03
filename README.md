@@ -11,6 +11,11 @@ as follows:
     - Users may make their own decisions as to whether making a customized docker image build is worthwhile
 1. Container runtime produces a final image artifact (ISO or QCOW2)
 
+The final QCOW2 image can be used:
+
+1. In the capm3-ironic deployment to deliver there that images to be used in BMH objects
+1. In manifests as KRM-function to get information about all Vars that were used to build that image, including the link to image-builder. See qcow-bundle metainformation section.
+
 # Airship Image Variations
 
 The ISO is built using the network information defined by the ephemeral node in the supplied airship manifests. Therefore, each airship deployment should have its own ISO created.
@@ -93,6 +98,42 @@ Configuration management of the base OS is divided into several realms, each wit
     1. Cron jobs, such as the Roomba cleanup script used in NCv1, or SACT/gstools scripts
     1. Possible overlapping of configuration-management items with #1 - #2, but for zero-disruption day-2 management (kept to a minimum to reduce design & testing complexity, only essential things to minimize overhead.)
     1. Eventually HCA may be phased out if #1 and #2 become streamlined enough and impact minimized to the degree that SLAs can be met, and use of HCA may be reduced or eliminated over time.
+
+# QCOW bundle metainformation
+
+QCOW bundle contains metainformation about Ansible var values that were used when the image was built.
+This information can be taken and used, because QCOW bundle is implemented as a KRM-function. See [the example](/image-builder/krm-function/example/).
+NOTE: replace `image:` URL with the one you want to get information about. Execute `kustomize build --enable-alpha-plugins <folder>` and it will output something like:
+
+```
+apiVersion: airshipit.org/v1alpha1
+kind: VariableCatalogue
+metadata:
+  name: profile_multistrap
+inventory_hostname_short: localhost
+k8s_version: 1.18.6-00
+kdump_tools:
+  crashkernel: 768M
+...
+```
+
+This VariableCatalogue contains all vars that were set when image-builder Docker images was built. To get that `configPath: /profiles/profile_multistrap.json` is used.
+This file is created during image-builder build process. Image-builder allows to override some parameters on QCOW-bundle generation. These values are also available
+and can be seen with `configPath: /profiles/profile_qcow_<qcow-image-settings-folder-name>.json`, e.g. `configPath: /profiles/profile_control-plane.json` or `configPath: /profiles/profile_data-plane.json`. That profile also contains information about the URL to image-builder that was used to product qcow-bundle: see field `image_builder_image`.
+
+
+This information can be used to build manifests that don't have duplication.
+E.g. k8s version rather than to be set ALONG with url of qcow-bundle, can be taken from qcow-bundle. That means that it's possible only to put info about qcow-bundle and information about k8s that it contains will be available. This may also reduce the size of Catalogues in general.
+
+The implementation is based on the following 2 playbook calls:
+
+```shell
+ansible-playbook -i assets/playbooks/inventory.yaml assets/playbooks/profile_generation.yaml
+ansible-playbook -i assets/playbooks/inventory.yaml assets/playbooks/profile_resolution.yaml
+```
+
+As a result the file `assets/playbooks/config.json` will appear with all configurable image-builder variables resolved.
+
 
 # Supported OSes
 
