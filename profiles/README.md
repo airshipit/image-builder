@@ -1,29 +1,38 @@
 # Directory structure:
 
 ```
-|-- manifests
-  |-- iso
-    +-- network_data.json
-    +-- user_data
-  |-- qcow-bundle-[bundle name]
-    |-- control-plane
-      +-- osconfig-vars.yaml
-      +-- qcow-vars.yaml
-    |-- data-plane
-      +-- osconfig-vars.yaml
-      +-- qcow-vars.yaml
-  |-- rootfs
-    |-- livecdcontent-vars.yaml
-    |-- multistrap-vars.yaml
-    |-- osconfig-vars.yaml
-  |-- scripts
-    |-- common
-    |-- qcow
+|-- profiles
+  |-- profile1
+    |-- manifests
+    |-- iso
+        +-- network_data.json
+        +-- user_data
+    |-- qcow-bundle-[bundle name]
+        |-- control-plane
+        +-- osconfig-vars.yaml
+        +-- qcow-vars.yaml
+        |-- data-plane
+        +-- osconfig-vars.yaml
+        +-- qcow-vars.yaml
+    |-- rootfs
+        |-- livecdcontent-vars.yaml
+        |-- multistrap-vars.yaml
+        |-- osconfig-vars.yaml
+    |-- scripts
+        |-- common
+        |-- qcow
 ```
 
 ## profiles
+This directory allows multiple bundle modifications to be created. It
+serves the same purpose as the `manifests` directory just expands on
+it's utility.
 
-To make modifications please consider using `profiles`.
+The folder structure is the same as the `manifests` directory. Create
+a new profile folder and copy the contents of `manifests` into it. Make your
+modifications and add the `profile=profile1` flag to the `make images` command.
+
+The profile will copy only the modified files into the `manifests` folder.
 
 ## iso
 
