@@ -12,7 +12,7 @@
       image_config_dir: manifests
       image_prefix: airshipit
       image_label: org.airshipit.build=community
-      image_tag: [latest]
+      image_tag: latest
     check:
       jobs:
         - airship-image-builder-build-k8s-1.18
@@ -26,6 +26,8 @@
         - airship-image-builder-upload-git-mirror
         - airship-image-builder-publish-k8s-1.18
         - airship-image-builder-publish-k8s-1.19
+        - airship-image-builder-publish-commit-k8s-1.18
+        - airship-image-builder-publish-commit-k8s-1.19
     tag:
       jobs:
         - airship-image-builder-upload-git-mirror
