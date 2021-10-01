@@ -44,7 +44,9 @@
       - name: image_builder_quay_creds
         secret: image_builder_quay_creds
     vars:
-      image_tag: "k8s-1.18-latest"
+      image_tag:
+        - "k8s-1.18-latest"
+        - "k8s-1.18-{{ zuul.newrev }}"
 
 # Tag the 1.19 job with 1.19
 - job:
@@ -59,21 +61,9 @@
       - name: image_builder_quay_creds
         secret: image_builder_quay_creds
     vars:
-      image_tag: "k8s-1.19-latest"
-
-# Tag the 1.18 job with zuul rev tag
-- job:
-    name: airship-image-builder-publish-commit-k8s-1.18
-    parent: airship-image-builder-publish-k8s-1.18
-    vars:
-      image_tag: "k8s-1.18-{{ zuul.newrev }}"
-
-# Tag the 1.19 job with zuul rev tag
-- job:
-    name: airship-image-builder-publish-commit-k8s-1.19
-    parent: airship-image-builder-publish-k8s-1.19
-    vars:
-      image_tag: "k8s-1.19-{{ zuul.newrev }}"
+      image_tag:
+        - "k8s-1.19-latest"
+        - "k8s-1.18-{{ zuul.newrev }}"
 
 - nodeset:
     name: airship-image-builder-single-node
