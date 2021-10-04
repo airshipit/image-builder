@@ -229,4 +229,3 @@ if [[ $perform_boot_test = "true" ]]; then
     exit 1
   fi
 fi
-

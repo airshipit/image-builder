@@ -38,7 +38,8 @@
       when: pre_build_role is defined
     - name: Publish images
       block:
-        - command: make images clean
+        - name: Publish Images with Latest and Commit Tags
+          command: make images
           args:
             chdir: "{{ makefile_chdir }}"
           environment:
@@ -47,7 +48,8 @@
             DOCKER_REGISTRY: "{{ docker_registry }}"
             GCP_SDK: "{{ gcp_sdk }}"
             IMAGE_PREFIX: "{{ image_prefix | default('airshipit') }}"
-            IMAGE_TAG: "{{ image_tag | default('latest') }}"
+            IMAGE_TAG_FIRST: "{{ image_tag | first | default('latest') }}"
+            IMAGE_TAG: "{{ item }}"
             LABEL: "{{ image_label | default('org.airshipit.build=community') }}"
             NO_PROXY: "{{ proxy.noproxy }}"
             PUSH_IMAGE: "false"
@@ -56,4 +58,5 @@
             USE_PROXY: "{{ proxy.enabled | lower }}"
             WORKDIR: "{{ image_work_dir | default('manifests') }}"
             PROFILE: "{{ image_profile_dir | default('') }}"
+          loop: "{{ image_tag|flatten(levels=1) }}"
       become: True

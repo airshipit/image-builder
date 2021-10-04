@@ -9,7 +9,7 @@
         secret: airship_image_builder_airshipit_github_key
         pass-to-parent: true
 
-# Run the default build job 1.18
+# Run the build job 1.18
 - job:
     name: airship-image-builder-build-k8s-1.18
     nodeset: airship-image-builder-single-node
@@ -20,7 +20,9 @@
     post-run: playbooks/airship-image-builder-collect-logs.yaml
     vars:
       image_profile_dir: k8s-1.18
-
+      image_tag:
+        - "k8s-1.18-latest"
+        - "k8s-1.18-FAKE-SHA-TEST"
 # Run the build job 1.19
 - job:
     name: airship-image-builder-build-k8s-1.19
@@ -32,6 +34,9 @@
     post-run: playbooks/airship-image-builder-collect-logs.yaml
     vars:
       image_profile_dir: k8s-1.19
+      image_tag:
+        - "k8s-1.19-latest"
+        - "k8s-1.19-FAKE-SHA-TEST"
 
 # Run the build job 1.21
 - job:
@@ -44,8 +49,11 @@
     post-run: playbooks/airship-image-builder-collect-logs.yaml
     vars:
       image_profile_dir: k8s-1.21
+      image_tag:
+        - "k8s-1.21-latest"
+        - "k8s-1.21-FAKE-SHA-TEST"
 
-# Tag default job with 1.18
+# Publish Job 1.18
 - job:
     name: airship-image-builder-publish-k8s-1.18
     parent: airship-image-builder-build-k8s-1.18
@@ -58,9 +66,11 @@
       - name: image_builder_quay_creds
         secret: image_builder_quay_creds
     vars:
-      image_tag: "k8s-1.18-latest"
+      image_tag:
+        - "k8s-1.18-latest"
+        - "k8s-1.18-{{ zuul.newrev }}"
 
-# Tag the 1.19 job with 1.19
+# Publish Job 1.19
 - job:
     name: airship-image-builder-publish-k8s-1.19
     parent: airship-image-builder-build-k8s-1.19
@@ -73,9 +83,11 @@
       - name: image_builder_quay_creds
         secret: image_builder_quay_creds
     vars:
-      image_tag: "k8s-1.19-latest"
+      image_tag:
+        - "k8s-1.19-latest"
+        - "k8s-1.19-{{ zuul.newrev }}"
 
-# Tag the 1.21 job with 1.21
+# Publish Job 1.21
 - job:
     name: airship-image-builder-publish-k8s-1.21
     parent: airship-image-builder-build-k8s-1.21
@@ -88,31 +100,12 @@
       - name: image_builder_quay_creds
         secret: image_builder_quay_creds
     vars:
-      image_tag: "k8s-1.21-latest"
-
-# Tag the 1.18 job with zuul rev tag
-- job:
-    name: airship-image-builder-publish-commit-k8s-1.18
-    parent: airship-image-builder-publish-k8s-1.18
-    vars:
-      image_tag: "k8s-1.18-{{ zuul.newrev }}"
-
-# Tag the 1.19 job with zuul rev tag
-- job:
-    name: airship-image-builder-publish-commit-k8s-1.19
-    parent: airship-image-builder-publish-k8s-1.19
-    vars:
-      image_tag: "k8s-1.19-{{ zuul.newrev }}"
+      image_tag:
+        - "k8s-1.21-latest"
+        - "k8s-1.21-{{ zuul.newrev }}"
 
 - nodeset:
     name: airship-image-builder-single-node
     nodes:
       - name: primary
         label: ubuntu-bionic-32GB
-
-# Tag the 1.21 job with zuul rev tag
-- job:
-    name: airship-image-builder-publish-commit-k8s-1.21
-    parent: airship-image-builder-publish-k8s-1.21
-    vars:
-      image_tag: "k8s-1.21-{{ zuul.newrev }}"
