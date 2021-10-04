@@ -18,6 +18,8 @@
     pre-run: playbooks/airship-image-builder-deploy-docker.yaml
     run: playbooks/airship-image-builder-build.yaml
     post-run: playbooks/airship-image-builder-collect-logs.yaml
+    vars:
+      image_profile_dir: k8s-1.18
 
 # Run the build job 1.19
 - job:
@@ -30,6 +32,18 @@
     post-run: playbooks/airship-image-builder-collect-logs.yaml
     vars:
       image_profile_dir: k8s-1.19
+
+# Run the build job 1.21
+- job:
+    name: airship-image-builder-build-k8s-1.21
+    nodeset: airship-image-builder-single-node
+    timeout: 7200
+    post-timeout: 7200
+    pre-run: playbooks/airship-image-builder-deploy-docker.yaml
+    run: playbooks/airship-image-builder-build.yaml
+    post-run: playbooks/airship-image-builder-collect-logs.yaml
+    vars:
+      image_profile_dir: k8s-1.21
 
 # Tag default job with 1.18
 - job:
@@ -61,6 +75,21 @@
     vars:
       image_tag: "k8s-1.19-latest"
 
+# Tag the 1.21 job with 1.21
+- job:
+    name: airship-image-builder-publish-k8s-1.21
+    parent: airship-image-builder-build-k8s-1.21
+    nodeset: airship-image-builder-single-node
+    timeout: 7200
+    post-timeout: 7200
+    pre-run: playbooks/airship-image-builder-deploy-docker.yaml
+    run: playbooks/airship-image-builder-publish-latest.yaml
+    secrets:
+      - name: image_builder_quay_creds
+        secret: image_builder_quay_creds
+    vars:
+      image_tag: "k8s-1.21-latest"
+
 # Tag the 1.18 job with zuul rev tag
 - job:
     name: airship-image-builder-publish-commit-k8s-1.18
@@ -80,3 +109,10 @@
     nodes:
       - name: primary
         label: ubuntu-bionic-32GB
+
+# Tag the 1.21 job with zuul rev tag
+- job:
+    name: airship-image-builder-publish-commit-k8s-1.21
+    parent: airship-image-builder-publish-k8s-1.21
+    vars:
+      image_tag: "k8s-1.21-{{ zuul.newrev }}"

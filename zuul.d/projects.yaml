@@ -17,10 +17,13 @@
       jobs:
         - airship-image-builder-build-k8s-1.18
         - airship-image-builder-build-k8s-1.19
+        - airship-image-builder-build-k8s-1.21
     gate:
       jobs:
         - airship-image-builder-build-k8s-1.18
         - airship-image-builder-build-k8s-1.19
+        - airship-image-builder-build-k8s-1.21
+
     post:
       jobs:
         - airship-image-builder-upload-git-mirror
@@ -28,6 +31,8 @@
         - airship-image-builder-publish-k8s-1.19
         - airship-image-builder-publish-commit-k8s-1.18
         - airship-image-builder-publish-commit-k8s-1.19
+        - airship-image-builder-publish-k8s-1.21
+        - airship-image-builder-publish-commit-k8s-1.21
     tag:
       jobs:
         - airship-image-builder-upload-git-mirror
