@@ -102,3 +102,27 @@ Configuration management of the base OS is divided into several realms, each wit
 
 Q: Why is the build target slow?
 A: There is a `mksquashfs` command which runs as part of the build target, and performs slowly if your build environment lacks certain CPU flags which accelerate compression. Use "host-passthrough" or equivalent in your build environment to pass through these CPU flags. In libvirt domain XML, you would change your `cpu` mode element as follows: `<cpu mode='host-passthrough' check='none'/>`
+
+# How Zuul image artifacts are used by Airshipctl
+
++------------------------------------------------------+  +----------------------------------------+
+|                     Built by Zuul                    |  |        Airshipctl Deployment Process   |
+|                                                      |  |                                        |
+|                                                      |  |                                        |
+|                            +----------------------+  |  |  +--------------+    +---------------+ |
+|                            |Base container image  +--+--+->| Ephemeral ISO|<---+ Site Manifests| |
+|                            |built by image-builder|  |  |  +--------------+    +---------------+ |
+|                            +-----------+----------+  |  |                                        |
+|                                        |             |  |                                        |
+| +-----------------------+   +----------v-----------+ |  |  +---------------------------------+   |
+| |Profiles from          +-->|QCOW container image  +-+--+->| QCOWs hosted from this container|   |
+| |image-builder/manifests|   |built by image-builder| |  |  | image by airshipctl             |   |
+| +-----------------------+   +----------------------+ |  |  +------------------+--------------+   |
+|                                                      |  |                     |                  |
+|                          +-------------------------+ |  |  +------------------v----------------+ |
+|                          |IPA container image      +-+--+->|IPA image for node discovery. IPA  | |
+|                          |built in airshipit/images| |  |  |deploys QCOW target image(s) pulled| |
+|                          +-------------------------+ |  |  |from hosted QCOW container above.  | |
+|                                                      |  |  +-----------------------------------+ |
++------------------------------------------------------+  +----------------------------------------+
+
