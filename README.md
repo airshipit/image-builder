@@ -82,7 +82,7 @@ Configuration management of the base OS is divided into several realms, each wit
     1. the NCv1 divingbell apparmor, security limits, file/dir permissions, sysctl, and
     1. custom-built kernel modules (e.g. dkms based installations, i40e driver, etc)
     1. Necessary components for the node’s bootstrap to k8s cluster, e.g. k8s, CNI, containerd, etc
-    1. any other operating system setting which would require a reboot or cannot otherwise be accomodated in #2 below
+    1. any other operating system setting which would require a reboot or cannot otherwise be accommodated in #2 below
 
 1. cloud-init driven configuration for site-specific data. Examples include:
     1. Hostnames, domain names, FQDNs, IP addresses, etc
