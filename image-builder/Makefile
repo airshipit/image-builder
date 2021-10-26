@@ -177,7 +177,7 @@ tests:
 clean:
 	set -ex
 	sudo -E tools/multistrap.sh clean
-	find $(WORKDIR) -name "*.iso" -exec rm {} \; >& /dev/null
-	find $(WORKDIR) -name "*.qcow2" -exec rm {} \; >& /dev/null
-	find $(WORKDIR) -name "*.snapshot" -exec rm {} \; >& /dev/null
-	find $(WORKDIR) -name "*.md5sum" -exec rm {} \; >& /dev/null
+	find $(WORKDIR) -name "*.iso" -exec rm -f {} \; >& /dev/null
+	find $(WORKDIR) -name "*.qcow2" -exec rm -f {} \; >& /dev/null
+	find $(WORKDIR) -name "*.snapshot" -exec rm -f {} \; >& /dev/null
+	find $(WORKDIR) -name "*.md5sum" -exec rm -f {} \; >& /dev/null
