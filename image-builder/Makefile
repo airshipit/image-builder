@@ -41,8 +41,10 @@ IMAGE           ?= ${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}:${IMAGE_TAG}
 PROXY           ?=
 NO_PROXY        ?= localhost,127.0.0.1
 BOOT_TIMEOUT    ?= 300 # Image boot validation timeout. Set to 0 to disable to make console available for manual debugging.
+#it doesn't matter - we're not going to publish it, because it's useless without jsons
+KRM_BASE_IMAGE  ?= ${DOCKER_REGISTRY}/${IMAGE_PREFIX}/image-profile-krm:${IMAGE_TAG}
 
-.PHONY: help build images cut_image package_qcow run clean
+.PHONY: help build images cut_image package_qcow krm_base_image run clean
 
 .ONESHELL:
 
@@ -107,7 +109,7 @@ ifeq ($(PUSH_IMAGE), true)
 	sudo -E DOCKER_BUILDKIT=1 docker push $(IMAGE)
 endif
 
-cut_image:
+cut_image: krm_base_image
 	set -ex
 ifneq ($(PROXY), )
 	sudo -E ./tools/docker_proxy.sh $(PROXY) $(NO_PROXY)
@@ -135,6 +137,8 @@ else
 	    # Image name
 	    export img_name=$$subdir.qcow2
 	    sudo -E tools/cut_image.sh $(IMAGE_TYPE) $(QCOW_BUNDLE) $(IMAGE) $(BOOT_TIMEOUT) "$(PROXY)" "$(NO_PROXY)"
+	    # keep profile info
+	    [ -e $(QCOW_BUNDLE)/profile_entrypoint.json ] && cat $(QCOW_BUNDLE)/profile_entrypoint.json && mv $(QCOW_BUNDLE)/profile_entrypoint.json $(QCOW_BUNDLE)/profile_qcow_$$subdir.json
 	done
 endif
 
@@ -165,11 +169,15 @@ endif
 	    --label "org.opencontainers.image.revision=$(COMMIT)" \
 	    --label "org.opencontainers.image.created=\
 	    $(shell date --rfc-3339=seconds --utc)" \
-	    --label "org.opencontainers.image.title=$(DOCKER_REGISTRY)/$(IMAGE_PREFIX)/$$bundledir:$(IMAGE_TAG)-$(DISTRO)"
+	    --label "org.opencontainers.image.title=$(DOCKER_REGISTRY)/$(IMAGE_PREFIX)/$$bundledir:$(IMAGE_TAG)-$(DISTRO)" \
+	    --build-arg KRM_BASE_IMAGE=$(KRM_BASE_IMAGE) 
 ifeq ($(PUSH_IMAGE), true)
 	    sudo -E DOCKER_BUILDKIT=1 docker push $(DOCKER_REGISTRY)/$(IMAGE_PREFIX)/$$bundledir:$(IMAGE_TAG)-$(DISTRO)
 endif
 	done
+
+krm_base_image:
+	sudo -E docker build krm-function -t $(KRM_BASE_IMAGE)
 
 tests:
 	true

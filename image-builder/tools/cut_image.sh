@@ -88,6 +88,7 @@ outputFileName: $img_name" > ${iso_config}
    --env HTTPS_PROXY=$proxy \
    --env no_proxy=$noproxy \
    --env NO_PROXY=$noproxy \
+   --env IMAGE=${image} \
    ${image} < ${iso_config}
   disk1="--disk path=${workdir}/${img_name},device=cdrom"
   network='--network network=default,mac=52:54:00:6c:99:85'
@@ -123,6 +124,7 @@ outputFileName: $img_name" > ${qcow_config}
    --env HTTPS_PROXY=$proxy \
    --env no_proxy=$noproxy \
    --env NO_PROXY=$noproxy \
+   --env IMAGE=${image} \
    ${image} < ${qcow_config}
   # Create cloud-config ISO for testing
   cloud_init_config_dir='assets/tests/qcow/cloud-init'

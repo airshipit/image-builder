@@ -29,7 +29,7 @@ if [ ! -e build ]; then
 fi
 
 # Instruct ansible to output the image artifact to the container's host mount
-extra_vars="$extra_vars img_output_dir=${VOLUME}"
+extra_vars="$extra_vars img_output_dir=${VOLUME} image_builder_image=${IMAGE}"
 
 echo "Begin Ansible plays"
 if [[ "${IMAGE_TYPE}" == "iso" ]]; then
@@ -40,6 +40,11 @@ if [[ "${IMAGE_TYPE}" == "iso" ]]; then
 
   echo "Executing Step 1"
   ansible-playbook -i /opt/assets/playbooks/inventory.yaml /opt/assets/playbooks/iso.yaml --extra-vars "$extra_vars" -vv
+
+  echo "Generation profile"
+  ansible-playbook -i /opt/assets/playbooks/inventory.yaml /opt/assets/playbooks/profile_generation.yaml --extra-vars "$extra_vars" -vv
+  ansible-playbook -i /opt/assets/playbooks/inventory.yaml /opt/assets/playbooks/profile_resolution.yaml --extra-vars "$extra_vars" -vv
+
 elif [[ "${IMAGE_TYPE}" == "qcow" ]]; then
   _process_input_data_set_vars_qcow
   _process_input_data_set_vars_osconfig
@@ -55,6 +60,10 @@ elif [[ "${IMAGE_TYPE}" == "qcow" ]]; then
 
   echo "Executing Step 3: Close image and write qcow2"
   ansible-playbook -i /opt/assets/playbooks/inventory.yaml /opt/assets/playbooks/qcow.yaml --extra-vars "$extra_vars" --tags "close_img" -vv
+
+  echo "Generation profile"
+  ansible-playbook -i /opt/assets/playbooks/inventory.yaml /opt/assets/playbooks/profile_generation.yaml --extra-vars "$extra_vars" -vv
+  ansible-playbook -i /opt/assets/playbooks/inventory.yaml /opt/assets/playbooks/profile_resolution.yaml --extra-vars "$extra_vars" -vv
 else
   echo "\${IMAGE_TYPE} value '${IMAGE_TYPE}' does not match an expected value: [ 'iso', 'qcow' ]"
   exit 1
@@ -62,6 +71,10 @@ fi
 
 # Write md5sum
 _make_metadata "${IMG_NAME}"
+
+# Write profiles to output dir
+cp /opt/assets/playbooks/profile_multistrap.json "${VOLUME}/profile_multistrap.json"
+cp /opt/assets/playbooks/profile.json "${VOLUME}/profile_entrypoint.json"
 
 echo "All Ansible plays completed successfully"
 

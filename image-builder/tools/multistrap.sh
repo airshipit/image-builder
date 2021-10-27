@@ -147,6 +147,16 @@ if [ -z "$SKIP_LIVECDCONTENT_ROLE" ]; then
   sudo -E ansible-playbook -i assets/playbooks/inventory.yaml assets/playbooks/base-livecdcontent.yaml -vv
 fi
 
+# Run profile generator, copy it and its results
+cp assets/playbooks/profile_generation.yaml $build_dir/opt/assets/playbooks/profile_generation.yaml
+cp assets/playbooks/profile_resolution.yaml $build_dir/opt/assets/playbooks/profile_resolution.yaml
+cp assets/playbooks/profile.j2 $build_dir/opt/assets/playbooks/profile.j2
+if [ -z "$SKIP_PROFILE_ROLE" ]; then
+  sudo -E ansible-playbook -i assets/playbooks/inventory.yaml assets/playbooks/profile_generation.yaml -vv
+  sudo -E ansible-playbook -i assets/playbooks/inventory.yaml assets/playbooks/profile_resolution.yaml -vv
+fi
+cp assets/playbooks/profile.json assets/playbooks/profile_multistrap.json
+
 cp assets/playbooks/iso.yaml $build_dir/opt/assets/playbooks/iso.yaml
 cp -r assets/playbooks/roles/iso $build_dir/opt/assets/playbooks/roles
 cp assets/playbooks/qcow.yaml $build_dir/opt/assets/playbooks/qcow.yaml

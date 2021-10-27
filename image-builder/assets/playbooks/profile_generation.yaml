@@ -1,0 +1,22 @@
+---
+- hosts: localhost
+  # we don't want to see facts in the resulting file
+  gather_facts: false
+  vars_files:
+    # list all files in this order so vars override defaults
+    - roles/multistrap/defaults/main.yaml
+    - roles/multistrap/vars/main.yaml
+    - roles/osconfig/defaults/main.yaml
+    - roles/osconfig/vars/main.yaml
+    - roles/livecdcontent/defaults/main.yaml
+    - roles/livecdcontent/vars/main.yaml
+  tasks:
+          # Uncomment if you want to see it in logs
+          #- name: Display all variables/facts known for a host
+          #  debug:
+          #    var: vars
+
+          - name: Store vars (intermittent 0)
+            template:
+              src: profile.j2
+              dest: intermittent.j2
