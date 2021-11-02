@@ -4,3 +4,4 @@ root_image: build
 mksquashfs_compression: lz4
 mksquashfs_threads: "{{ ansible_processor_vcpus }}"
 squashfs_timeout: 120
+grub_menu_timeout: 0
