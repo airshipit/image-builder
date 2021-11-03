@@ -222,7 +222,7 @@ tag:
 
 push:
 	set -ex
-	sudo -E DOCKER_BUILDKIT=1 docker push $(SOURCE_IMAGE_TAG) $(TARGET_IMAGE_TAG)
+	sudo -E DOCKER_BUILDKIT=1 docker push $(SOURCE_IMAGE_TAG)
 
 tests:
 	true
