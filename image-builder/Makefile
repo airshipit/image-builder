@@ -47,6 +47,8 @@ BOOT_TIMEOUT             ?= 300
 #it doesn't matter - we're not going to publish it, because it's useless without jsons
 KRM_IMAGE_TAG            ?= latest
 KRM_BASE_IMAGE           ?= ${DOCKER_REGISTRY}/${IMAGE_PREFIX}/image-profile-krm:${KRM_IMAGE_TAG}
+# Space delimited list of apt mirror FQDN regex matches that will fallback to upstream ubuntu mirror if specified mirror is not working.
+APT_MIRROR_PROBLEM_LIST  ?= "citycloud"
 
 .PHONY: help build images cut_image package_qcow krm_base_image run clean docker_build tag push
 
@@ -60,6 +62,9 @@ images: build generate_iso package_qcow clean
 
 build:
 	set -ex
+	# Use upstream mirrors as a backup in case local apt mirrors are not working.
+	# Only applies to mirrors on the problem list
+	sudo -E ./tools/fix_mirrors.sh $(APT_MIRROR_PROBLEM_LIST)
 ifneq ($(PROFILE), )
 	# Apply any user-defined profiles overrides to playbooks
 	rsync -rc ./../profiles/$(PROFILE)/manifests/ $(WORKDIR)/
