@@ -76,26 +76,26 @@ The `SKIP_MULTI_ROLE` build flag is useful if you would like to test local updat
 sudo make SKIP_MULTI_ROLE=true build
 ```
 
-Similiarly, osconfig and livecdcontent roles can be skipped using `SKIP_OSCONFIG_ROLE` and `SKIP_LIVECDCONTENT_ROLE` respectively. `SKIP_LIVECDCONTENT_ROLE` may be useful in combination with `SKIP_MULTI_ROLE` if you want to test out playbook changes to `osconfig` (however, it won't show up in the final bootable ISO image unless you don't skip `SKIP_LIVECDCONTENT_ROLE`).
+Similarly, osconfig and livecdcontent roles can be skipped using `SKIP_OSCONFIG_ROLE` and `SKIP_LIVECDCONTENT_ROLE` respectively. `SKIP_LIVECDCONTENT_ROLE` may be useful in combination with `SKIP_MULTI_ROLE` if you want to test out playbook changes to `osconfig` (however, it won't show up in the final bootable ISO image unless you don't skip `SKIP_LIVECDCONTENT_ROLE`).
 
 # Division of Configuration Management responsibilities
 
 Configuration management of the base OS is divided into several realms, each with their own focus:
 
 1. Image-builder configuration data, i.e. data baked into the QCOW2 base image. The following should be used to drive this phase:
-    1. The storage and compute elements of NCv1 host and hardware profiles (kernel boot params, cpu pinning, hugepage settings, disk partitioning, etc), and
-    1. the NCv1 divingbell apparmor, security limits, file/dir permissions, sysctl, and
-    1. custom-built kernel modules (e.g. dkms based installations, i40e driver, etc)
+    1. The storage and compute elements of host/hardware profiles (kernel boot params, cpu pinning, hugepage settings, disk partitioning, etc), and
+    1. Common operating system configurations applicable to all (or most) deployment scenarios.
+    1. Custom-built kernel modules (e.g. dkms based installations, i40e driver, etc)
     1. Necessary components for the node’s bootstrap to k8s cluster, e.g. k8s, CNI, containerd, etc
-    1. any other operating system setting which would require a reboot or cannot otherwise be accommodated in #2 below
+    1. Any other operating system setting which would require a reboot or cannot otherwise be accommodated in #2 below
 
-1. cloud-init driven configuration for site-specific data. Examples include:
+1. Cloud-init driven configuration for site-specific data. Examples include:
     1. Hostnames, domain names, FQDNs, IP addresses, etc
     1. Network configuration data (bonding, MTU settings, VLANs, DNS, NTP, ethtool settings, etc)
     1. Certificates, SSH keys, user accounts and/or passwords, etc.
 
 1. HCA (host-config agent) for limited day-2 base-OS management
-    1. Cron jobs, such as the Roomba cleanup script used in NCv1, or SACT/gstools scripts
+    1. Cron jobs
     1. Possible overlapping of configuration-management items with #1 - #2, but for zero-disruption day-2 management (kept to a minimum to reduce design & testing complexity, only essential things to minimize overhead.)
     1. Eventually HCA may be phased out if #1 and #2 become streamlined enough and impact minimized to the degree that SLAs can be met, and use of HCA may be reduced or eliminated over time.
 
