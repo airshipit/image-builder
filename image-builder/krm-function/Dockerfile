@@ -1,4 +1,13 @@
-FROM quay.io/airshipit/golang:1.16.8-buster
+ARG FROM=quay.io/airshipit/golang:1.16.8-buster
+FROM ${FROM}
+
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
+ARG http_proxy
+ARG https_proxy
+ARG no_proxy
+
 ENV CGO_ENABLED=0
 WORKDIR /go/src/
 

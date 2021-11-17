@@ -196,7 +196,18 @@ endif
 	done
 
 krm_base_image:
+	set -ex
+ifneq ($(PROXY), )
+	sudo -E docker build krm-function -t $(KRM_BASE_IMAGE) \
+	--build-arg http_proxy=$(PROXY) \
+	--build-arg https_proxy=$(PROXY) \
+	--build-arg HTTP_PROXY=$(PROXY) \
+	--build-arg HTTPS_PROXY=$(PROXY) \
+	--build-arg no_proxy=$(NO_PROXY) \
+	--build-arg NO_PROXY=$(NO_PROXY)
+else
 	sudo -E docker build krm-function -t $(KRM_BASE_IMAGE)
+endif
 
 docker_build:
 	set -ex
