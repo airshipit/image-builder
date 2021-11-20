@@ -77,7 +77,8 @@ endif
 	export DOCKERFILE=Dockerfile.$(DISTRO)
 	export DOCKERFILE_FOLDER="."
 	export IMAGE_NAME=image-builder
-	export SOURCE_IMAGE_TAG=${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}:${IMAGE_TAG}-${DISTRO}
+	export SOURCE_IMAGE_REPO="${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}"
+	export SOURCE_IMAGE_TAG=$${SOURCE_IMAGE_REPO}:${IMAGE_TAG}-${DISTRO}
 ifneq (,$(findstring latest, $(IMAGE_TAG)))
 ifneq ($(PROXY), )
 	sudo -E ./tools/docker_proxy.sh $(PROXY) $(NO_PROXY)
@@ -106,8 +107,9 @@ endif
 		sudo cat /tmp/sticky_result && exit 1)
 else
 # Set SOURCE_IMAGE_TAG and TARGET_IMAGE_TAG for tagging purposes
-	export SOURCE_IMAGE_TAG="${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}:${IMAGE_TAG_FIRST}-${DISTRO}"
-	export TARGET_IMAGE_TAG="${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}:${IMAGE_TAG}-${DISTRO}"
+	export SOURCE_IMAGE_REPO="${DOCKER_REGISTRY}/${IMAGE_PREFIX}/${IMAGE_NAME}"
+	export SOURCE_IMAGE_TAG="$${SOURCE_IMAGE_REPO}:${IMAGE_TAG_FIRST}-${DISTRO}"
+	export TARGET_IMAGE_TAG="$${SOURCE_IMAGE_REPO}:${IMAGE_TAG}-${DISTRO}"
 	# Don't repackage image-builder, just tag it.
 	sudo -E make tag
 endif
@@ -181,12 +183,14 @@ ifneq (,$(findstring latest, $(IMAGE_TAG)))
 		export DOCKERFILE="Dockerfile-qcow.$(DISTRO)"
 		export DOCKERFILE_FOLDER="$(WORKDIR)/$$bundledir"
 		export IMAGE_NAME=$$bundledir
-		export SOURCE_IMAGE_TAG=${DOCKER_REGISTRY}/${IMAGE_PREFIX}/$$bundledir:${IMAGE_TAG}-${DISTRO}
+		export SOURCE_IMAGE_REPO="${DOCKER_REGISTRY}/${IMAGE_PREFIX}/$$bundledir"
+		export SOURCE_IMAGE_TAG="$${SOURCE_IMAGE_REPO}:${IMAGE_TAG}-${DISTRO}"
 		sudo -E make docker_build
 else
 # Set SOURCE_IMAGE_TAG & TARGET_IMAGE_TAG for tagging purposes
-		export SOURCE_IMAGE_TAG=${DOCKER_REGISTRY}/${IMAGE_PREFIX}/$$bundledir:${IMAGE_TAG_FIRST}-${DISTRO}
-		export TARGET_IMAGE_TAG="${DOCKER_REGISTRY}/${IMAGE_PREFIX}/$$bundledir:${IMAGE_TAG}-${DISTRO}"
+		export SOURCE_IMAGE_REPO="${DOCKER_REGISTRY}/${IMAGE_PREFIX}/$$bundledir"
+		export SOURCE_IMAGE_TAG="$${SOURCE_IMAGE_REPO}:${IMAGE_TAG_FIRST}-${DISTRO}"
+		export TARGET_IMAGE_TAG="$${SOURCE_IMAGE_REPO}:${IMAGE_TAG}-${DISTRO}"
 		# Don't repackage qcow, just tag it.
 		sudo -E make tag
 endif
@@ -238,7 +242,7 @@ tag:
 
 push:
 	set -ex
-	sudo -E DOCKER_BUILDKIT=1 docker image push --all-tags $(SOURCE_IMAGE_TAG)
+	sudo -E DOCKER_BUILDKIT=1 docker image push --all-tags $(SOURCE_IMAGE_REPO)
 
 tests:
 	true
